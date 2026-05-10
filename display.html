@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Live Attendance - Festival Check-In</title>
+<title>Live Attendance — Fear Not</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
@@ -28,40 +28,49 @@ body {
   text-transform: uppercase;
   letter-spacing: 3px;
   color: #999;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
+}
+.subtitle {
+  font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+  color: #555;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
 }
 
 .day-toggle {
-  display: flex;
-  gap: 4px;
-  background: #1a1a1a;
-  border-radius: 8px;
+  display: inline-flex;
+  background: #1e1e1e;
+  border-radius: 10px;
   padding: 4px;
   margin-bottom: 40px;
+  border: 1px solid #333;
 }
 .day-btn {
   font-family: inherit;
-  padding: 10px 32px;
-  font-size: 1rem;
+  padding: 12px 24px;
+  text-align: center;
+  font-size: 1.05rem;
+  white-space: nowrap;
   font-weight: 700;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  background: none;
-  color: #666;
+  background: transparent;
+  color: #aaa;
   transition: background 0.2s, color 0.2s;
 }
 .day-btn.active {
   background: #4f46e5;
   color: #fff;
 }
-.day-btn:hover:not(.active) { color: #aaa; }
+.day-btn:hover:not(.active) { color: #fff; background: #2a2a2a; }
 
 .ring-container {
   position: relative;
-  width: clamp(220px, 45vmin, 360px);
-  height: clamp(220px, 45vmin, 360px);
-  margin-bottom: 32px;
+  width: clamp(200px, 40vmin, 320px);
+  height: clamp(200px, 40vmin, 320px);
+  margin: 0 auto 24px;
 }
 
 .ring-bg, .ring-fill {
@@ -130,25 +139,29 @@ svg.ring-svg {
 }
 
 .stats-row {
-  display: flex;
-  gap: clamp(24px, 8vw, 80px);
-  margin-top: 8px;
+  display: inline-flex;
+  gap: clamp(40px, 12vw, 100px);
+  margin-top: 0;
+  background: #141414;
+  padding: 20px 40px;
+  border-radius: 16px;
+  border: 1px solid #222;
 }
 
 .stat-block { text-align: center; }
 .stat-num {
-  font-size: clamp(1.5rem, 5vmin, 2.5rem);
-  font-weight: 700;
+  font-size: clamp(2rem, 6vmin, 3rem);
+  font-weight: 800;
 }
-.stat-num.green { color: #16a34a; }
-.stat-num.amber { color: #ca8a04; }
+.stat-num.green { color: #22c55e; }
+.stat-num.amber { color: #eab308; }
 .stat-lbl {
-  font-size: clamp(0.7rem, 1.5vmin, 0.9rem);
-  color: #666;
+  font-size: clamp(0.7rem, 1.5vmin, 0.85rem);
+  color: #888;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
   font-weight: 600;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .connection-dot {
@@ -166,6 +179,17 @@ svg.ring-svg {
   color: #444;
   font-size: 1.1rem;
 }
+.display-credits {
+  position: fixed;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: clamp(0.6rem, 1.2vw, 0.8rem);
+  color: #444;
+  letter-spacing: 1px;
+}
+
 .loading .spinner {
   width: 32px;
   height: 32px;
@@ -188,11 +212,12 @@ svg.ring-svg {
 </div>
 
 <div id="displayState" style="display:none;text-align:center;">
-  <div class="title">Festival Check-In</div>
+  <div class="title">Fear Not — Dispelling Phobia, Fostering Belonging</div>
+  <div class="subtitle">15–16 May 2026 · M.L. Bhartia Auditorium, Alliance Française de Delhi</div>
 
   <div class="day-toggle" id="dayToggle">
-    <button class="day-btn active" data-day="1">Day 1</button>
-    <button class="day-btn" data-day="2">Day 2</button>
+    <button class="day-btn active" data-day="1">Day 1 — May 15</button>
+    <button class="day-btn" data-day="2">Day 2 — May 16</button>
   </div>
 
   <div class="ring-container">
@@ -217,6 +242,10 @@ svg.ring-svg {
       <div class="stat-num amber" id="statRemaining">0</div>
       <div class="stat-lbl">Remaining</div>
     </div>
+  </div>
+
+  <div class="display-credits">
+    Presented by Alliance Française de Delhi × DDAF India · Curated by The Main Screen &amp; Rainbow Lit Fest
   </div>
 </div>
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Festival Check-In</title>
+<title>Fear Not — Check-In</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -66,6 +66,7 @@ body {
   border-bottom: 1px solid var(--border);
 }
 .header h1 { font-size: 1.25rem; font-weight: 700; }
+.header-subtitle { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
 .header-actions { display: flex; gap: 8px; align-items: center; }
 
 .sync-status {
@@ -495,12 +496,23 @@ button:active { opacity: 0.85; }
   font-family: inherit;
 }
 .sort-select:focus { outline: none; border-color: var(--accent); }
+
+.footer-credits {
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  padding: 20px 16px 12px;
+  line-height: 1.5;
+}
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <h1>Festival Check-In</h1>
+    <div>
+      <h1>Fear Not</h1>
+      <div class="header-subtitle">15–16 May 2026 · Alliance Française de Delhi</div>
+    </div>
     <div class="header-actions">
       <span class="sync-status" id="syncStatus"></span>
       <button class="btn-icon" id="darkModeToggle" title="Toggle dark mode">
@@ -552,8 +564,8 @@ button:active { opacity: 0.85; }
 
   <div class="view" id="checkinView">
     <div class="day-toggle" id="dayToggle">
-      <button class="day-toggle-btn active" data-day="1">Day 1</button>
-      <button class="day-toggle-btn" data-day="2">Day 2</button>
+      <button class="day-toggle-btn active" data-day="1">Day 1 — May 15</button>
+      <button class="day-toggle-btn" data-day="2">Day 2 — May 16</button>
     </div>
 
     <div class="stats-bar">
@@ -590,10 +602,14 @@ button:active { opacity: 0.85; }
       <button class="btn-secondary" id="exportBtn">Export Report</button>
       <button class="btn-secondary" id="resetBtn">Reset Check-Ins</button>
       <button class="btn-secondary" id="newCsvBtn">Load New CSV</button>
-      <a href="display.html" target="_blank" class="btn-secondary" style="text-decoration:none;text-align:center;">Live Display</a>
+      <button class="btn-secondary" id="liveDisplayBtn">Live Display</button>
     </div>
   </div>
 </div>
+
+<footer class="footer-credits">
+  Presented by Alliance Française de Delhi × DDAF India · Curated by The Main Screen &amp; Rainbow Lit Fest
+</footer>
 
 <div class="toast-container" id="toastContainer"></div>
 <div id="modalRoot"></div>
@@ -657,6 +673,8 @@ button:active { opacity: 0.85; }
   const sortSelect = document.getElementById('sortSelect');
 
   let activeSort = 'default';
+
+  function dayLabel(d) { return d === 1 ? 'Day 1 — May 15' : 'Day 2 — May 16'; }
 
   // --- Connection status ---
   db.ref('.info/connected').on('value', (snap) => {
@@ -851,8 +869,8 @@ button:active { opacity: 0.85; }
       row.innerHTML = `
         <span class="value-name">${esc(val)}</span>
         <select data-value="${esc(val)}">
-          <option value="1" ${guessed === '1' ? 'selected' : ''}>Day 1 only</option>
-          <option value="2" ${guessed === '2' ? 'selected' : ''}>Day 2 only</option>
+          <option value="1" ${guessed === '1' ? 'selected' : ''}>Day 1 (May 15) only</option>
+          <option value="2" ${guessed === '2' ? 'selected' : ''}>Day 2 (May 16) only</option>
           <option value="both" ${guessed === 'both' ? 'selected' : ''}>Both days</option>
         </select>`;
       dayBucketRows.appendChild(row);
@@ -1096,7 +1114,7 @@ button:active { opacity: 0.85; }
     playCheckinFeedback();
 
     const name = attendee.data[config.displayColumn] || 'Attendee';
-    showToast(`${name} checked in for Day ${activeDay}!`, () => undoCheckIn(id), 5000);
+    showToast(`${name} checked in for ${dayLabel(activeDay)}!`, () => undoCheckIn(id), 5000);
   }
 
   function undoCheckIn(id) {
@@ -1127,7 +1145,7 @@ button:active { opacity: 0.85; }
     const time = formatTime(getCheckedInAtForDay(attendee));
     showModal(
       'Already Checked In',
-      `${name} was checked in for Day ${activeDay} at ${time}.`,
+      `${name} was checked in for ${dayLabel(activeDay)} at ${time}.`,
       [
         { label: 'Undo Check-In', cls: 'btn-danger', action: () => {
           undoCheckIn(attendee.id);
@@ -1196,7 +1214,7 @@ button:active { opacity: 0.85; }
       'Choose what to reset. Registration data will be kept.',
       [
         { label: 'Cancel', cls: 'btn-secondary', action: closeModal },
-        { label: `Reset Day ${activeDay}`, cls: 'btn-danger', action: () => {
+        { label: `Reset ${dayLabel(activeDay)}`, cls: 'btn-danger', action: () => {
           attendees.forEach(a => {
             if (activeDay === 1) { a.checkedInDay1 = false; a.checkedInDay1At = null; }
             else { a.checkedInDay2 = false; a.checkedInDay2At = null; }
@@ -1205,7 +1223,7 @@ button:active { opacity: 0.85; }
           renderStats();
           renderList();
           closeModal();
-          showToast(`Day ${activeDay} check-ins reset.`, null, 3000);
+          showToast(`${dayLabel(activeDay)} check-ins reset.`, null, 3000);
         }},
         { label: 'Reset Both Days', cls: 'btn-danger', action: () => {
           attendees.forEach(a => {
@@ -1220,6 +1238,11 @@ button:active { opacity: 0.85; }
         }}
       ]
     );
+  });
+
+  // --- Live Display ---
+  document.getElementById('liveDisplayBtn').addEventListener('click', () => {
+    window.open('display.html', '_blank');
   });
 
   // --- Load New CSV ---
@@ -1327,8 +1350,8 @@ button:active { opacity: 0.85; }
             <label>Register for:</label>
             <select id="walkinDay">
               <option value="both">Both days</option>
-              <option value="1">Day 1 only</option>
-              <option value="2">Day 2 only</option>
+              <option value="1">Day 1 (May 15) only</option>
+              <option value="2">Day 2 (May 16) only</option>
             </select>
           </div>
         </div>
@@ -1383,7 +1406,7 @@ button:active { opacity: 0.85; }
       renderStats();
       renderList();
       playCheckinFeedback();
-      showToast(`${name} added and checked in for Day ${activeDay}!`, null, 4000);
+      showToast(`${name} added and checked in for ${dayLabel(activeDay)}!`, null, 4000);
     });
   });
 
