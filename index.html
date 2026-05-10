@@ -135,6 +135,7 @@ button:active { opacity: 0.85; }
   margin-top: 20px;
 }
 .mapping-card h2 { font-size: 1.1rem; margin-bottom: 16px; }
+.mapping-card h3 { font-size: 0.9rem; margin: 12px 0 8px; color: var(--text-muted); }
 .mapping-field { margin-bottom: 16px; }
 .mapping-field label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); }
 .mapping-field select, .mapping-field input[type="text"] {
@@ -166,6 +167,50 @@ button:active { opacity: 0.85; }
 .checkbox-group input { accent-color: var(--accent); }
 .mapping-actions { display: flex; justify-content: flex-end; margin-top: 20px; }
 .preview-note { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+
+.day-bucket-section { margin-top: 12px; padding: 16px; background: var(--bg); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.day-bucket-section h3 { margin-top: 0; }
+.day-bucket-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.day-bucket-row:last-child { border-bottom: none; }
+.day-bucket-row .value-name { font-size: 0.9rem; font-weight: 500; flex: 1; min-width: 0; }
+.day-bucket-row select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  background: var(--bg-card);
+  color: var(--text);
+  font-family: inherit;
+}
+
+/* Day Toggle */
+.day-toggle {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  box-shadow: var(--shadow);
+}
+.day-toggle-btn {
+  flex: 1;
+  padding: 10px 0;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  background: none;
+  color: var(--text-muted);
+  border-radius: 4px;
+}
+.day-toggle-btn.active { background: var(--accent); color: #fff; }
 
 .stats-bar {
   display: grid;
@@ -275,9 +320,24 @@ button:active { opacity: 0.85; }
   opacity: 0.7;
 }
 .attendee-info { flex: 1; min-width: 0; }
+.attendee-name-row { display: flex; align-items: center; gap: 8px; }
 .attendee-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .attendee-details { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .attendee-time { font-size: 0.7rem; color: var(--green); margin-top: 2px; }
+
+.day-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.day-badge.both { background: var(--accent); color: #fff; opacity: 0.8; }
+.day-badge.d1 { background: var(--yellow-bg); color: var(--yellow); }
+.day-badge.d2 { background: var(--green-bg); color: var(--green); }
 
 .btn-checkin {
   padding: 10px 20px;
@@ -356,13 +416,13 @@ button:active { opacity: 0.85; }
   background: var(--bg-card);
   border-radius: var(--radius);
   padding: 24px;
-  max-width: 400px;
+  max-width: 440px;
   width: 100%;
   box-shadow: var(--shadow-lg);
 }
 .modal h3 { margin-bottom: 12px; font-size: 1.1rem; }
 .modal p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
-.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
 
 .mgmt-panel {
   background: var(--bg-card);
@@ -390,6 +450,51 @@ button:active { opacity: 0.85; }
   margin: 0 auto 16px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Walk-in modal form */
+.walkin-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.walkin-form input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+}
+.walkin-form input:focus { outline: none; border-color: var(--accent); }
+.walkin-form label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: -6px; }
+.walkin-form .walkin-day-row { display: flex; gap: 8px; align-items: center; }
+.walkin-form .walkin-day-row label { margin-bottom: 0; }
+.walkin-form select {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+}
+
+/* Sort & toolbar row */
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.sort-select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  background: var(--bg-card);
+  color: var(--text);
+  font-family: inherit;
+}
+.sort-select:focus { outline: none; border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -430,6 +535,14 @@ button:active { opacity: 0.85; }
         <label>Searchable Columns</label>
         <div class="checkbox-group" id="searchColChecks"></div>
       </div>
+      <div class="mapping-field">
+        <label>Day Registration Column</label>
+        <select id="dayColSelect"></select>
+      </div>
+      <div id="dayBucketSection" class="day-bucket-section" style="display:none">
+        <h3>Assign each value to a day</h3>
+        <div id="dayBucketRows"></div>
+      </div>
       <p class="preview-note" id="previewNote"></p>
       <div class="mapping-actions">
         <button class="btn-primary" id="startBtn">Start Check-In</button>
@@ -438,6 +551,11 @@ button:active { opacity: 0.85; }
   </div>
 
   <div class="view" id="checkinView">
+    <div class="day-toggle" id="dayToggle">
+      <button class="day-toggle-btn active" data-day="1">Day 1</button>
+      <button class="day-toggle-btn" data-day="2">Day 2</button>
+    </div>
+
     <div class="stats-bar">
       <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total</div></div>
       <div class="stat-card checked"><div class="stat-value" id="statChecked">0</div><div class="stat-label">Checked In</div></div>
@@ -449,20 +567,30 @@ button:active { opacity: 0.85; }
       <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" class="search-input" id="searchInput" placeholder="Search by name, email, phone..." autocomplete="off">
     </div>
-    <div class="search-hint" id="searchHint">Press Enter when one result is shown to check them in instantly</div>
+    <div class="search-hint">Press Enter when one result is shown to check them in instantly</div>
 
-    <div class="filter-tabs">
-      <button class="filter-tab active" data-filter="all">All <span class="tab-count" id="countAll"></span></button>
-      <button class="filter-tab" data-filter="pending">Pending <span class="tab-count" id="countPending"></span></button>
-      <button class="filter-tab" data-filter="checked">Checked In <span class="tab-count" id="countChecked"></span></button>
+    <div class="toolbar-row">
+      <div class="filter-tabs" style="flex:1">
+        <button class="filter-tab active" data-filter="all">All <span class="tab-count" id="countAll"></span></button>
+        <button class="filter-tab" data-filter="pending">Pending <span class="tab-count" id="countPending"></span></button>
+        <button class="filter-tab" data-filter="checked">Checked In <span class="tab-count" id="countChecked"></span></button>
+      </div>
+      <select class="sort-select" id="sortSelect">
+        <option value="default">Original order</option>
+        <option value="name-asc">Name A-Z</option>
+        <option value="name-desc">Name Z-A</option>
+        <option value="checkin-recent">Recently checked in</option>
+      </select>
     </div>
 
     <ul class="attendee-list" id="attendeeList"></ul>
 
     <div class="mgmt-panel">
+      <button class="btn-primary" id="walkinBtn">+ Walk-In</button>
       <button class="btn-secondary" id="exportBtn">Export Report</button>
-      <button class="btn-secondary" id="resetBtn">Reset All Check-Ins</button>
+      <button class="btn-secondary" id="resetBtn">Reset Check-Ins</button>
       <button class="btn-secondary" id="newCsvBtn">Load New CSV</button>
+      <a href="display.html" target="_blank" class="btn-secondary" style="text-decoration:none;text-align:center;">Live Display</a>
     </div>
   </div>
 </div>
@@ -492,6 +620,7 @@ button:active { opacity: 0.85; }
   let attendees = [];
   let config = null;
   let activeFilter = 'all';
+  let activeDay = 1;
   let searchQuery = '';
   let dataLoaded = false;
 
@@ -503,6 +632,9 @@ button:active { opacity: 0.85; }
   const mappingCard = document.getElementById('mappingCard');
   const displayColSelect = document.getElementById('displayColSelect');
   const searchColChecks = document.getElementById('searchColChecks');
+  const dayColSelect = document.getElementById('dayColSelect');
+  const dayBucketSection = document.getElementById('dayBucketSection');
+  const dayBucketRows = document.getElementById('dayBucketRows');
   const previewNote = document.getElementById('previewNote');
   const startBtn = document.getElementById('startBtn');
   const searchInput = document.getElementById('searchInput');
@@ -520,7 +652,13 @@ button:active { opacity: 0.85; }
   const resetBtn = document.getElementById('resetBtn');
   const newCsvBtn = document.getElementById('newCsvBtn');
   const syncStatus = document.getElementById('syncStatus');
+  const dayToggle = document.getElementById('dayToggle');
+  const walkinBtn = document.getElementById('walkinBtn');
+  const sortSelect = document.getElementById('sortSelect');
 
+  let activeSort = 'default';
+
+  // --- Connection status ---
   db.ref('.info/connected').on('value', (snap) => {
     if (snap.val() === true) {
       syncStatus.textContent = 'Synced';
@@ -531,6 +669,7 @@ button:active { opacity: 0.85; }
     }
   });
 
+  // --- Dark Mode ---
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     iconSun.style.display = theme === 'dark' ? 'none' : 'block';
@@ -547,6 +686,7 @@ button:active { opacity: 0.85; }
     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   applyTheme(savedTheme);
 
+  // --- Views ---
   function showView(view) {
     loadingView.classList.remove('active');
     uploadView.classList.remove('active');
@@ -557,6 +697,7 @@ button:active { opacity: 0.85; }
     }
   }
 
+  // --- Firebase: Load data on startup ---
   showView(loadingView);
 
   configRef.once('value').then((snap) => {
@@ -608,6 +749,7 @@ button:active { opacity: 0.85; }
     });
   }
 
+  // --- CSV Upload ---
   dropZone.addEventListener('click', () => fileInput.click());
   dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
@@ -647,8 +789,11 @@ button:active { opacity: 0.85; }
     mappingCard.style.display = 'block';
     displayColSelect.innerHTML = '';
     searchColChecks.innerHTML = '';
+    dayColSelect.innerHTML = '';
+    dayBucketSection.style.display = 'none';
 
     const nameGuess = guessColumn(parsedHeaders, ['name', 'full name', 'fullname', 'attendee', 'participant']);
+    const dayGuess = guessColumnContains(parsedHeaders, ['day', 'registered', 'pass', 'attending']);
 
     parsedHeaders.forEach(col => {
       const opt = document.createElement('option');
@@ -669,7 +814,57 @@ button:active { opacity: 0.85; }
       searchColChecks.appendChild(label);
     });
 
+    parsedHeaders.forEach(col => {
+      const opt = document.createElement('option');
+      opt.value = col;
+      opt.textContent = col;
+      if (col === dayGuess) opt.selected = true;
+      dayColSelect.appendChild(opt);
+    });
+
+    buildDayBuckets();
+    dayColSelect.addEventListener('change', buildDayBuckets);
+
     previewNote.textContent = `${parsedRows.length} registrations found with ${parsedHeaders.length} columns.`;
+  }
+
+  function buildDayBuckets() {
+    const col = dayColSelect.value;
+    if (!col) return;
+
+    const uniqueValues = [...new Set(parsedRows.map(r => (r[col] || '').trim()).filter(Boolean))];
+
+    if (!uniqueValues.length) {
+      dayBucketSection.style.display = 'none';
+      return;
+    }
+
+    dayBucketSection.style.display = 'block';
+    dayBucketRows.innerHTML = '';
+
+    uniqueValues.forEach(val => {
+      const row = document.createElement('div');
+      row.className = 'day-bucket-row';
+
+      const guessed = guessDay(val);
+
+      row.innerHTML = `
+        <span class="value-name">${esc(val)}</span>
+        <select data-value="${esc(val)}">
+          <option value="1" ${guessed === '1' ? 'selected' : ''}>Day 1 only</option>
+          <option value="2" ${guessed === '2' ? 'selected' : ''}>Day 2 only</option>
+          <option value="both" ${guessed === 'both' ? 'selected' : ''}>Both days</option>
+        </select>`;
+      dayBucketRows.appendChild(row);
+    });
+  }
+
+  function guessDay(val) {
+    const v = val.toLowerCase();
+    if (v.includes('both') || v.includes('1 & 2') || v.includes('1 and 2') || v.includes('all')) return 'both';
+    if (v.includes('2') && !v.includes('1')) return '2';
+    if (v.includes('1') && !v.includes('2')) return '1';
+    return 'both';
   }
 
   function guessColumn(headers, hints) {
@@ -681,23 +876,50 @@ button:active { opacity: 0.85; }
     return headers[0];
   }
 
+  function guessColumnContains(headers, hints) {
+    const lower = headers.map(h => h.toLowerCase().trim());
+    for (const hint of hints) {
+      const idx = lower.findIndex(h => h.includes(hint));
+      if (idx !== -1) return headers[idx];
+    }
+    return headers[headers.length - 1];
+  }
+
   startBtn.addEventListener('click', () => {
     const displayColumn = displayColSelect.value;
     const checkboxes = searchColChecks.querySelectorAll('input:checked');
     const searchColumns = Array.from(checkboxes).map(cb => cb.value);
+    const dayColumn = dayColSelect.value;
 
     if (!searchColumns.length) {
       showToast('Select at least one searchable column.', null, 3000);
       return;
     }
 
-    config = { displayColumn, searchColumns };
-    attendees = parsedRows.map((row, i) => ({
-      id: i,
-      data: row,
-      checkedIn: false,
-      checkedInAt: null
-    }));
+    const dayMapping = {};
+    dayBucketRows.querySelectorAll('select').forEach(sel => {
+      const val = sel.dataset.value;
+      const bucket = sel.value;
+      if (bucket === '1') dayMapping[val] = [1];
+      else if (bucket === '2') dayMapping[val] = [2];
+      else dayMapping[val] = [1, 2];
+    });
+
+    config = { displayColumn, searchColumns, dayColumn, dayMapping };
+
+    attendees = parsedRows.map((row, i) => {
+      const dayVal = (row[dayColumn] || '').trim();
+      const days = dayMapping[dayVal] || [1, 2];
+      return {
+        id: i,
+        data: row,
+        days: days,
+        checkedInDay1: false,
+        checkedInDay1At: null,
+        checkedInDay2: false,
+        checkedInDay2At: null
+      };
+    });
 
     configRef.set(config);
     attendeesRef.set(attendees);
@@ -705,15 +927,40 @@ button:active { opacity: 0.85; }
     showCheckinView();
   });
 
+  // --- Day Toggle ---
+  dayToggle.addEventListener('click', (e) => {
+    const btn = e.target.closest('.day-toggle-btn');
+    if (!btn) return;
+    dayToggle.querySelectorAll('.day-toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeDay = parseInt(btn.dataset.day, 10);
+    renderStats();
+    renderList();
+  });
+
+  // --- Check-In View ---
   function showCheckinView() {
     showView(checkinView);
     renderStats();
     renderList();
   }
 
+  function getDayAttendees() {
+    return attendees.filter(a => a.days && a.days.includes(activeDay));
+  }
+
+  function isCheckedInForDay(a) {
+    return activeDay === 1 ? a.checkedInDay1 : a.checkedInDay2;
+  }
+
+  function getCheckedInAtForDay(a) {
+    return activeDay === 1 ? a.checkedInDay1At : a.checkedInDay2At;
+  }
+
   function renderStats() {
-    const total = attendees.length;
-    const checked = attendees.filter(a => a.checkedIn).length;
+    const dayList = getDayAttendees();
+    const total = dayList.length;
+    const checked = dayList.filter(a => isCheckedInForDay(a)).length;
     const remaining = total - checked;
     statTotal.textContent = total;
     statChecked.textContent = checked;
@@ -726,10 +973,10 @@ button:active { opacity: 0.85; }
   }
 
   function getFilteredAttendees() {
-    let list = attendees;
+    let list = getDayAttendees();
 
-    if (activeFilter === 'pending') list = list.filter(a => !a.checkedIn);
-    else if (activeFilter === 'checked') list = list.filter(a => a.checkedIn);
+    if (activeFilter === 'pending') list = list.filter(a => !isCheckedInForDay(a));
+    else if (activeFilter === 'checked') list = list.filter(a => isCheckedInForDay(a));
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -741,7 +988,31 @@ button:active { opacity: 0.85; }
       });
     }
 
+    if (activeSort === 'name-asc') {
+      list = [...list].sort((a, b) => (a.data[config.displayColumn] || '').localeCompare(b.data[config.displayColumn] || ''));
+    } else if (activeSort === 'name-desc') {
+      list = [...list].sort((a, b) => (b.data[config.displayColumn] || '').localeCompare(a.data[config.displayColumn] || ''));
+    } else if (activeSort === 'checkin-recent') {
+      list = [...list].sort((a, b) => {
+        const tA = getCheckedInAtForDay(a) || '';
+        const tB = getCheckedInAtForDay(b) || '';
+        if (!tA && !tB) return 0;
+        if (!tA) return 1;
+        if (!tB) return -1;
+        return tB.localeCompare(tA);
+      });
+    }
+
     return list;
+  }
+
+  function getDayBadge(a) {
+    if (!a.days) return '';
+    const has1 = a.days.includes(1);
+    const has2 = a.days.includes(2);
+    if (has1 && has2) return '<span class="day-badge both">Both</span>';
+    if (has1) return '<span class="day-badge d1">D1</span>';
+    return '<span class="day-badge d2">D2</span>';
   }
 
   function renderList() {
@@ -759,21 +1030,26 @@ button:active { opacity: 0.85; }
 
     const frag = document.createDocumentFragment();
     filtered.forEach(a => {
+      const checked = isCheckedInForDay(a);
+      const checkedAt = getCheckedInAtForDay(a);
       const li = document.createElement('li');
-      li.className = 'attendee-item' + (a.checkedIn ? ' checked-in' : '');
+      li.className = 'attendee-item' + (checked ? ' checked-in' : '');
 
       const detailCols = config.searchColumns.filter(c => c !== config.displayColumn);
       const details = detailCols.map(c => a.data[c]).filter(Boolean).join(' \u00b7 ');
 
       li.innerHTML = `
         <div class="attendee-info">
-          <div class="attendee-name">${esc(a.data[config.displayColumn] || '(no name)')}</div>
+          <div class="attendee-name-row">
+            <span class="attendee-name">${esc(a.data[config.displayColumn] || '(no name)')}</span>
+            ${getDayBadge(a)}
+          </div>
           ${details ? `<div class="attendee-details">${esc(details)}</div>` : ''}
-          ${a.checkedIn ? `<div class="attendee-time">Checked in at ${formatTime(a.checkedInAt)}</div>` : ''}
+          ${checked ? `<div class="attendee-time">Checked in at ${formatTime(checkedAt)}</div>` : ''}
         </div>
-        <button class="btn-checkin ${a.checkedIn ? 'done btn-secondary' : 'btn-primary'}"
+        <button class="btn-checkin ${checked ? 'done btn-secondary' : 'btn-primary'}"
                 data-id="${a.id}">
-          ${a.checkedIn ? '&#10003; Done' : 'Check In'}
+          ${checked ? '&#10003; Done' : 'Check In'}
         </button>`;
       frag.appendChild(li);
     });
@@ -787,7 +1063,7 @@ button:active { opacity: 0.85; }
     const attendee = attendees.find(a => a.id === id);
     if (!attendee) return;
 
-    if (attendee.checkedIn) {
+    if (isCheckedInForDay(attendee)) {
       showAlreadyCheckedInWarning(attendee);
       return;
     }
@@ -799,47 +1075,71 @@ button:active { opacity: 0.85; }
     const attendee = attendees.find(a => a.id === id);
     if (!attendee) return;
 
-    attendee.checkedIn = true;
-    attendee.checkedInAt = new Date().toISOString();
+    const now = new Date().toISOString();
+    const updates = {};
 
-    attendeesRef.child(String(id)).update({
-      checkedIn: true,
-      checkedInAt: attendee.checkedInAt
-    });
+    if (activeDay === 1) {
+      attendee.checkedInDay1 = true;
+      attendee.checkedInDay1At = now;
+      updates.checkedInDay1 = true;
+      updates.checkedInDay1At = now;
+    } else {
+      attendee.checkedInDay2 = true;
+      attendee.checkedInDay2At = now;
+      updates.checkedInDay2 = true;
+      updates.checkedInDay2At = now;
+    }
 
+    attendeesRef.child(String(id)).update(updates);
     renderStats();
     renderList();
+    playCheckinFeedback();
 
     const name = attendee.data[config.displayColumn] || 'Attendee';
-    showToast(`${name} checked in!`, () => undoCheckIn(id), 5000);
+    showToast(`${name} checked in for Day ${activeDay}!`, () => undoCheckIn(id), 5000);
   }
 
   function undoCheckIn(id) {
     const attendee = attendees.find(a => a.id === id);
     if (!attendee) return;
 
-    attendee.checkedIn = false;
-    attendee.checkedInAt = null;
+    const updates = {};
 
-    attendeesRef.child(String(id)).update({
-      checkedIn: false,
-      checkedInAt: null
-    });
+    if (activeDay === 1) {
+      attendee.checkedInDay1 = false;
+      attendee.checkedInDay1At = null;
+      updates.checkedInDay1 = false;
+      updates.checkedInDay1At = null;
+    } else {
+      attendee.checkedInDay2 = false;
+      attendee.checkedInDay2At = null;
+      updates.checkedInDay2 = false;
+      updates.checkedInDay2At = null;
+    }
 
+    attendeesRef.child(String(id)).update(updates);
     renderStats();
     renderList();
   }
 
   function showAlreadyCheckedInWarning(attendee) {
     const name = attendee.data[config.displayColumn] || 'Attendee';
-    const time = formatTime(attendee.checkedInAt);
+    const time = formatTime(getCheckedInAtForDay(attendee));
     showModal(
       'Already Checked In',
-      `${name} was already checked in at ${time}. No action needed.`,
-      [{ label: 'OK', cls: 'btn-primary', action: closeModal }]
+      `${name} was checked in for Day ${activeDay} at ${time}.`,
+      [
+        { label: 'Undo Check-In', cls: 'btn-danger', action: () => {
+          undoCheckIn(attendee.id);
+          closeModal();
+          showToast(`${name} check-in undone.`, null, 3000);
+        }},
+        { label: 'OK', cls: 'btn-primary', action: closeModal }
+      ]
     );
   }
 
+  // --- Search ---
   searchInput.addEventListener('input', () => {
     searchQuery = searchInput.value.trim();
     renderList();
@@ -848,7 +1148,7 @@ button:active { opacity: 0.85; }
   searchInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       const filtered = getFilteredAttendees();
-      if (filtered.length === 1 && !filtered[0].checkedIn) {
+      if (filtered.length === 1 && !isCheckedInForDay(filtered[0])) {
         checkIn(filtered[0].id);
         searchInput.value = '';
         searchQuery = '';
@@ -857,6 +1157,7 @@ button:active { opacity: 0.85; }
     }
   });
 
+  // --- Filter Tabs ---
   document.querySelectorAll('.filter-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
@@ -866,11 +1167,21 @@ button:active { opacity: 0.85; }
     });
   });
 
+  // --- Sort ---
+  sortSelect.addEventListener('change', () => {
+    activeSort = sortSelect.value;
+    renderList();
+  });
+
+  // --- Export ---
   exportBtn.addEventListener('click', () => {
     const rows = attendees.map(a => {
       const row = { ...a.data };
-      row['checked_in'] = a.checkedIn ? 'yes' : 'no';
-      row['checked_in_at'] = a.checkedInAt || '';
+      row['checked_in_day1'] = a.checkedInDay1 ? 'yes' : 'no';
+      row['checked_in_day1_at'] = a.checkedInDay1At || '';
+      row['checked_in_day2'] = a.checkedInDay2 ? 'yes' : 'no';
+      row['checked_in_day2_at'] = a.checkedInDay2At || '';
+      row['walk_in'] = a.isWalkin ? 'yes' : 'no';
       return row;
     });
     const csv = Papa.unparse(rows);
@@ -878,24 +1189,40 @@ button:active { opacity: 0.85; }
     showToast('Report exported!', null, 3000);
   });
 
+  // --- Reset ---
   resetBtn.addEventListener('click', () => {
     showModal(
-      'Reset All Check-Ins',
-      'This will uncheck everyone. Registration data will be kept. Are you sure?',
+      'Reset Check-Ins',
+      'Choose what to reset. Registration data will be kept.',
       [
         { label: 'Cancel', cls: 'btn-secondary', action: closeModal },
-        { label: 'Reset', cls: 'btn-danger', action: () => {
-          attendees.forEach(a => { a.checkedIn = false; a.checkedInAt = null; });
+        { label: `Reset Day ${activeDay}`, cls: 'btn-danger', action: () => {
+          attendees.forEach(a => {
+            if (activeDay === 1) { a.checkedInDay1 = false; a.checkedInDay1At = null; }
+            else { a.checkedInDay2 = false; a.checkedInDay2At = null; }
+          });
           attendeesRef.set(attendees);
           renderStats();
           renderList();
           closeModal();
-          showToast('All check-ins reset.', null, 3000);
+          showToast(`Day ${activeDay} check-ins reset.`, null, 3000);
+        }},
+        { label: 'Reset Both Days', cls: 'btn-danger', action: () => {
+          attendees.forEach(a => {
+            a.checkedInDay1 = false; a.checkedInDay1At = null;
+            a.checkedInDay2 = false; a.checkedInDay2At = null;
+          });
+          attendeesRef.set(attendees);
+          renderStats();
+          renderList();
+          closeModal();
+          showToast('All check-ins reset for both days.', null, 3000);
         }}
       ]
     );
   });
 
+  // --- Load New CSV ---
   newCsvBtn.addEventListener('click', () => {
     showModal(
       'Load New CSV',
@@ -919,6 +1246,7 @@ button:active { opacity: 0.85; }
     );
   });
 
+  // --- Toast ---
   function showToast(message, undoCallback, duration) {
     const toast = document.createElement('div');
     toast.className = 'toast';
@@ -936,6 +1264,7 @@ button:active { opacity: 0.85; }
     setTimeout(() => { if (toast.parentNode) toast.remove(); }, duration || 5000);
   }
 
+  // --- Modal ---
   function showModal(title, text, buttons) {
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
@@ -962,6 +1291,103 @@ button:active { opacity: 0.85; }
     modalRoot.innerHTML = '';
   }
 
+  // --- Check-in feedback (vibration + sound) ---
+  function playCheckinFeedback() {
+    if (navigator.vibrate) navigator.vibrate(80);
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.setValueAtTime(1320, ctx.currentTime + 0.06);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.15);
+    } catch(e) {}
+  }
+
+  // --- Walk-in Registration ---
+  walkinBtn.addEventListener('click', () => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal">
+        <h3>Walk-In Registration</h3>
+        <div class="walkin-form">
+          <label>Name *</label>
+          <input type="text" id="walkinName" placeholder="Full name" autocomplete="off">
+          <label>Email</label>
+          <input type="text" id="walkinEmail" placeholder="Email (optional)" autocomplete="off">
+          <label>Phone</label>
+          <input type="text" id="walkinPhone" placeholder="Phone (optional)" autocomplete="off">
+          <div class="walkin-day-row">
+            <label>Register for:</label>
+            <select id="walkinDay">
+              <option value="both">Both days</option>
+              <option value="1">Day 1 only</option>
+              <option value="2">Day 2 only</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-secondary" id="walkinCancel">Cancel</button>
+          <button class="btn-primary" id="walkinSave">Add &amp; Check In</button>
+        </div>
+      </div>`;
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+    modalRoot.innerHTML = '';
+    modalRoot.appendChild(overlay);
+
+    const nameInput = document.getElementById('walkinName');
+    nameInput.focus();
+
+    document.getElementById('walkinCancel').addEventListener('click', closeModal);
+    document.getElementById('walkinSave').addEventListener('click', () => {
+      const name = nameInput.value.trim();
+      if (!name) { nameInput.style.borderColor = 'var(--red)'; return; }
+
+      const email = document.getElementById('walkinEmail').value.trim();
+      const phone = document.getElementById('walkinPhone').value.trim();
+      const dayVal = document.getElementById('walkinDay').value;
+      const days = dayVal === '1' ? [1] : dayVal === '2' ? [2] : [1, 2];
+
+      const newId = attendees.length;
+      const data = {};
+      data[config.displayColumn] = name;
+      config.searchColumns.forEach(col => {
+        if (col !== config.displayColumn) {
+          const cl = col.toLowerCase();
+          if (cl.includes('email') && email) data[col] = email;
+          else if ((cl.includes('phone') || cl.includes('mobile') || cl.includes('tel')) && phone) data[col] = phone;
+        }
+      });
+
+      const newAttendee = {
+        id: newId,
+        data: data,
+        days: days,
+        checkedInDay1: days.includes(activeDay) && activeDay === 1,
+        checkedInDay1At: days.includes(activeDay) && activeDay === 1 ? new Date().toISOString() : null,
+        checkedInDay2: days.includes(activeDay) && activeDay === 2,
+        checkedInDay2At: days.includes(activeDay) && activeDay === 2 ? new Date().toISOString() : null,
+        isWalkin: true
+      };
+
+      attendees.push(newAttendee);
+      attendeesRef.child(String(newId)).set(newAttendee);
+
+      closeModal();
+      renderStats();
+      renderList();
+      playCheckinFeedback();
+      showToast(`${name} added and checked in for Day ${activeDay}!`, null, 4000);
+    });
+  });
+
+  // --- Utils ---
   function esc(str) {
     const div = document.createElement('div');
     div.textContent = str;

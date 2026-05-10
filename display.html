@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Attendance - Festival Check-In</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0a0a0a;
+  color: #e5e5e5;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 24px;
+}
+
+.title {
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #999;
+  margin-bottom: 20px;
+}
+
+.day-toggle {
+  display: flex;
+  gap: 4px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 40px;
+}
+.day-btn {
+  font-family: inherit;
+  padding: 10px 32px;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: none;
+  color: #666;
+  transition: background 0.2s, color 0.2s;
+}
+.day-btn.active {
+  background: #4f46e5;
+  color: #fff;
+}
+.day-btn:hover:not(.active) { color: #aaa; }
+
+.ring-container {
+  position: relative;
+  width: clamp(220px, 45vmin, 360px);
+  height: clamp(220px, 45vmin, 360px);
+  margin-bottom: 32px;
+}
+
+.ring-bg, .ring-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.ring-bg {
+  border: clamp(10px, 2.5vmin, 18px) solid #1e1e1e;
+}
+
+.ring-fill {
+  border: clamp(10px, 2.5vmin, 18px) solid transparent;
+  border-top-color: #16a34a;
+  border-right-color: #16a34a;
+  transform: rotate(-90deg);
+  transition: clip-path 0.6s ease;
+}
+
+svg.ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.ring-track {
+  fill: none;
+  stroke: #1e1e1e;
+  stroke-width: 10;
+}
+.ring-progress {
+  fill: none;
+  stroke: #16a34a;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease;
+}
+
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.counter-main {
+  font-size: clamp(2.5rem, 10vmin, 5rem);
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+}
+.counter-main .separator { color: #444; margin: 0 4px; }
+.counter-main .total-num { color: #666; }
+
+.counter-label {
+  font-size: clamp(0.8rem, 2vmin, 1.1rem);
+  color: #666;
+  margin-top: 8px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+}
+
+.stats-row {
+  display: flex;
+  gap: clamp(24px, 8vw, 80px);
+  margin-top: 8px;
+}
+
+.stat-block { text-align: center; }
+.stat-num {
+  font-size: clamp(1.5rem, 5vmin, 2.5rem);
+  font-weight: 700;
+}
+.stat-num.green { color: #16a34a; }
+.stat-num.amber { color: #ca8a04; }
+.stat-lbl {
+  font-size: clamp(0.7rem, 1.5vmin, 0.9rem);
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.connection-dot {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #dc2626;
+}
+.connection-dot.online { background: #16a34a; }
+
+.loading {
+  color: #444;
+  font-size: 1.1rem;
+}
+.loading .spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #333;
+  border-top-color: #4f46e5;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="connection-dot" id="connDot"></div>
+
+<div id="loadingState" class="loading">
+  <div class="spinner"></div>
+  <p>Connecting...</p>
+</div>
+
+<div id="displayState" style="display:none;text-align:center;">
+  <div class="title">Festival Check-In</div>
+
+  <div class="day-toggle" id="dayToggle">
+    <button class="day-btn active" data-day="1">Day 1</button>
+    <button class="day-btn" data-day="2">Day 2</button>
+  </div>
+
+  <div class="ring-container">
+    <svg class="ring-svg" viewBox="0 0 200 200">
+      <circle class="ring-track" cx="100" cy="100" r="88"/>
+      <circle class="ring-progress" id="ringProgress" cx="100" cy="100" r="88"/>
+    </svg>
+    <div class="ring-center">
+      <div class="counter-main">
+        <span id="checkedNum">0</span><span class="separator">/</span><span class="total-num" id="totalNum">0</span>
+      </div>
+      <div class="counter-label">checked in</div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-block">
+      <div class="stat-num green" id="statChecked">0</div>
+      <div class="stat-lbl">Arrived</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num amber" id="statRemaining">0</div>
+      <div class="stat-lbl">Remaining</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const firebaseConfig = {
+    apiKey: "AIzaSyCAsZ3RKRNoLWfkruuTh_E8NRnpjENgvwg",
+    authDomain: "festival-checkin.firebaseapp.com",
+    databaseURL: "https://festival-checkin-default-rtdb.firebaseio.com",
+    projectId: "festival-checkin",
+    storageBucket: "festival-checkin.firebasestorage.app",
+    messagingSenderId: "1046502888585",
+    appId: "1:1046502888585:web:fae2575e5d1f06a0352258"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  let attendees = [];
+  let config = null;
+  let activeDay = 1;
+
+  const loadingState = document.getElementById('loadingState');
+  const displayState = document.getElementById('displayState');
+  const connDot = document.getElementById('connDot');
+  const checkedNum = document.getElementById('checkedNum');
+  const totalNum = document.getElementById('totalNum');
+  const statChecked = document.getElementById('statChecked');
+  const statRemaining = document.getElementById('statRemaining');
+  const ringProgress = document.getElementById('ringProgress');
+  const dayToggle = document.getElementById('dayToggle');
+
+  const circumference = 2 * Math.PI * 88;
+  ringProgress.style.strokeDasharray = circumference;
+  ringProgress.style.strokeDashoffset = circumference;
+
+  db.ref('.info/connected').on('value', (snap) => {
+    connDot.className = snap.val() === true ? 'connection-dot online' : 'connection-dot';
+  });
+
+  dayToggle.addEventListener('click', (e) => {
+    const btn = e.target.closest('.day-btn');
+    if (!btn) return;
+    dayToggle.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeDay = parseInt(btn.dataset.day, 10);
+    updateDisplay();
+  });
+
+  function updateDisplay() {
+    const dayList = attendees.filter(a => a.days && a.days.includes(activeDay));
+    const total = dayList.length;
+    const checked = dayList.filter(a => activeDay === 1 ? a.checkedInDay1 : a.checkedInDay2).length;
+    const remaining = total - checked;
+
+    checkedNum.textContent = checked;
+    totalNum.textContent = total;
+    statChecked.textContent = checked;
+    statRemaining.textContent = remaining;
+
+    const pct = total > 0 ? checked / total : 0;
+    const offset = circumference * (1 - pct);
+    ringProgress.style.strokeDashoffset = offset;
+  }
+
+  db.ref('config').on('value', (snap) => {
+    const val = snap.val();
+    if (val) {
+      config = val;
+      showDisplay();
+    }
+  });
+
+  db.ref('attendees').on('value', (snap) => {
+    const val = snap.val();
+    if (val) {
+      attendees = Array.isArray(val) ? val : Object.values(val);
+      showDisplay();
+      updateDisplay();
+    }
+  });
+
+  function showDisplay() {
+    if (config && attendees.length) {
+      loadingState.style.display = 'none';
+      displayState.style.display = 'block';
+    }
+  }
+})();
+</script>
+</body>
+</html>
