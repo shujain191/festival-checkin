@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Festival Check-In</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f5f5;
+  --bg-card: #ffffff;
+  --bg-hover: #f0f0f0;
+  --text: #1a1a1a;
+  --text-muted: #666;
+  --border: #e0e0e0;
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --green: #16a34a;
+  --green-bg: #dcfce7;
+  --green-border: #bbf7d0;
+  --red: #dc2626;
+  --red-bg: #fee2e2;
+  --yellow: #ca8a04;
+  --yellow-bg: #fef9c3;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.1);
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+
+[data-theme="dark"] {
+  --bg: #111111;
+  --bg-card: #1e1e1e;
+  --bg-hover: #2a2a2a;
+  --text: #e5e5e5;
+  --text-muted: #999;
+  --border: #333;
+  --green-bg: #052e16;
+  --green-border: #14532d;
+  --red-bg: #450a0a;
+  --yellow-bg: #422006;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  transition: background 0.2s, color 0.2s;
+}
+
+.container { max-width: 720px; margin: 0 auto; padding: 16px; }
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.header h1 { font-size: 1.25rem; font-weight: 700; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+.sync-status {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+.sync-status.online { background: var(--green-bg); color: var(--green); }
+.sync-status.offline { background: var(--red-bg); color: var(--red); }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  padding: 8px 14px;
+  transition: background 0.15s, opacity 0.15s;
+}
+button:active { opacity: 0.85; }
+
+.btn-primary { background: var(--accent); color: #fff; font-weight: 600; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary { background: var(--bg-hover); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-icon {
+  background: none;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+.btn-icon:hover { background: var(--bg-hover); }
+.btn-icon svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.view { display: none; }
+.view.active { display: block; }
+
+.upload-area {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: var(--bg-card);
+  margin-top: 24px;
+}
+.upload-area:hover, .upload-area.dragover {
+  border-color: var(--accent);
+  background: var(--bg-hover);
+}
+.upload-area svg { width: 48px; height: 48px; stroke: var(--text-muted); fill: none; stroke-width: 1.5; margin-bottom: 12px; }
+.upload-area p { color: var(--text-muted); margin-top: 8px; font-size: 0.9rem; }
+.upload-area .upload-title { color: var(--text); font-size: 1.1rem; font-weight: 600; margin-top: 12px; }
+
+.mapping-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  margin-top: 20px;
+}
+.mapping-card h2 { font-size: 1.1rem; margin-bottom: 16px; }
+.mapping-field { margin-bottom: 16px; }
+.mapping-field label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); }
+.mapping-field select, .mapping-field input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+}
+.checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg);
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.checkbox-group label:hover { background: var(--bg-hover); }
+.checkbox-group input { accent-color: var(--accent); }
+.mapping-actions { display: flex; justify-content: flex-end; margin-top: 20px; }
+.preview-note { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.stat-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.stat-value { font-size: 1.5rem; font-weight: 700; }
+.stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-card.checked .stat-value { color: var(--green); }
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.search-wrapper {
+  position: relative;
+  margin-bottom: 12px;
+}
+.search-wrapper svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  stroke: var(--text-muted);
+  fill: none;
+  stroke-width: 2;
+  pointer-events: none;
+}
+.search-input {
+  width: 100%;
+  padding: 14px 14px 14px 44px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  background: var(--bg-card);
+  color: var(--text);
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+.search-input:focus { outline: none; border-color: var(--accent); }
+.search-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  box-shadow: var(--shadow);
+}
+.filter-tab {
+  flex: 1;
+  padding: 8px 0;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: none;
+  color: var(--text-muted);
+  border-radius: 4px;
+}
+.filter-tab.active { background: var(--accent); color: #fff; }
+.filter-tab .tab-count { font-weight: 400; opacity: 0.8; }
+
+.attendee-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.attendee-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--bg-card);
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: background 0.15s;
+  border-left: 4px solid transparent;
+}
+.attendee-item:hover { background: var(--bg-hover); }
+.attendee-item.checked-in {
+  border-left-color: var(--green);
+  opacity: 0.7;
+}
+.attendee-info { flex: 1; min-width: 0; }
+.attendee-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.attendee-details { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.attendee-time { font-size: 0.7rem; color: var(--green); margin-top: 2px; }
+
+.btn-checkin {
+  padding: 10px 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+.btn-checkin.done {
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1px solid var(--green-border);
+  cursor: default;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--text-muted);
+}
+.empty-state svg { width: 48px; height: 48px; stroke: var(--border); fill: none; margin-bottom: 12px; }
+.empty-state p { font-size: 0.95rem; }
+
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+}
+.toast {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  pointer-events: auto;
+  animation: slideUp 0.25s ease;
+}
+[data-theme="dark"] .toast { background: #333; }
+.toast button {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  padding: 4px 12px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+.toast button:hover { background: rgba(255,255,255,0.3); }
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+}
+.modal h3 { margin-bottom: 12px; font-size: 1.1rem; }
+.modal p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+.mgmt-panel {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.loading-view {
+  text-align: center;
+  padding: 60px 16px;
+  color: var(--text-muted);
+}
+.loading-view .spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Festival Check-In</h1>
+    <div class="header-actions">
+      <span class="sync-status" id="syncStatus"></span>
+      <button class="btn-icon" id="darkModeToggle" title="Toggle dark mode">
+        <svg id="iconSun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="iconMoon" viewBox="0 0 24 24" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="view" id="loadingView">
+    <div class="loading-view">
+      <div class="spinner"></div>
+      <p>Connecting to database...</p>
+    </div>
+  </div>
+
+  <div class="view" id="uploadView">
+    <div class="upload-area" id="dropZone">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <div class="upload-title">Upload Registration CSV</div>
+      <p>Drag &amp; drop your file here, or tap to browse</p>
+    </div>
+    <input type="file" id="fileInput" accept=".csv,.tsv,.txt" hidden>
+
+    <div class="mapping-card" id="mappingCard" style="display:none">
+      <h2>Configure Columns</h2>
+      <div class="mapping-field">
+        <label>Display Name Column</label>
+        <select id="displayColSelect"></select>
+      </div>
+      <div class="mapping-field">
+        <label>Searchable Columns</label>
+        <div class="checkbox-group" id="searchColChecks"></div>
+      </div>
+      <p class="preview-note" id="previewNote"></p>
+      <div class="mapping-actions">
+        <button class="btn-primary" id="startBtn">Start Check-In</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="checkinView">
+    <div class="stats-bar">
+      <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total</div></div>
+      <div class="stat-card checked"><div class="stat-value" id="statChecked">0</div><div class="stat-label">Checked In</div></div>
+      <div class="stat-card"><div class="stat-value" id="statRemaining">0</div><div class="stat-label">Remaining</div></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="search-wrapper">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search by name, email, phone..." autocomplete="off">
+    </div>
+    <div class="search-hint" id="searchHint">Press Enter when one result is shown to check them in instantly</div>
+
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all">All <span class="tab-count" id="countAll"></span></button>
+      <button class="filter-tab" data-filter="pending">Pending <span class="tab-count" id="countPending"></span></button>
+      <button class="filter-tab" data-filter="checked">Checked In <span class="tab-count" id="countChecked"></span></button>
+    </div>
+
+    <ul class="attendee-list" id="attendeeList"></ul>
+
+    <div class="mgmt-panel">
+      <button class="btn-secondary" id="exportBtn">Export Report</button>
+      <button class="btn-secondary" id="resetBtn">Reset All Check-Ins</button>
+      <button class="btn-secondary" id="newCsvBtn">Load New CSV</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<div id="modalRoot"></div>
+
+<script>
+(function() {
+  const firebaseConfig = {
+    apiKey: "AIzaSyCAsZ3RKRNoLWfkruuTh_E8NRnpjENgvwg",
+    authDomain: "festival-checkin.firebaseapp.com",
+    databaseURL: "https://festival-checkin-default-rtdb.firebaseio.com",
+    projectId: "festival-checkin",
+    storageBucket: "festival-checkin.firebasestorage.app",
+    messagingSenderId: "1046502888585",
+    appId: "1:1046502888585:web:fae2575e5d1f06a0352258"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const attendeesRef = db.ref('attendees');
+  const configRef = db.ref('config');
+
+  const STORAGE_THEME = 'festival_checkin_theme';
+
+  let attendees = [];
+  let config = null;
+  let activeFilter = 'all';
+  let searchQuery = '';
+  let dataLoaded = false;
+
+  const loadingView = document.getElementById('loadingView');
+  const uploadView = document.getElementById('uploadView');
+  const checkinView = document.getElementById('checkinView');
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const mappingCard = document.getElementById('mappingCard');
+  const displayColSelect = document.getElementById('displayColSelect');
+  const searchColChecks = document.getElementById('searchColChecks');
+  const previewNote = document.getElementById('previewNote');
+  const startBtn = document.getElementById('startBtn');
+  const searchInput = document.getElementById('searchInput');
+  const attendeeList = document.getElementById('attendeeList');
+  const statTotal = document.getElementById('statTotal');
+  const statChecked = document.getElementById('statChecked');
+  const statRemaining = document.getElementById('statRemaining');
+  const progressFill = document.getElementById('progressFill');
+  const toastContainer = document.getElementById('toastContainer');
+  const modalRoot = document.getElementById('modalRoot');
+  const darkModeToggle = document.getElementById('darkModeToggle');
+  const iconSun = document.getElementById('iconSun');
+  const iconMoon = document.getElementById('iconMoon');
+  const exportBtn = document.getElementById('exportBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const newCsvBtn = document.getElementById('newCsvBtn');
+  const syncStatus = document.getElementById('syncStatus');
+
+  db.ref('.info/connected').on('value', (snap) => {
+    if (snap.val() === true) {
+      syncStatus.textContent = 'Synced';
+      syncStatus.className = 'sync-status online';
+    } else {
+      syncStatus.textContent = 'Offline';
+      syncStatus.className = 'sync-status offline';
+    }
+  });
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    iconSun.style.display = theme === 'dark' ? 'none' : 'block';
+    iconMoon.style.display = theme === 'dark' ? 'block' : 'none';
+    localStorage.setItem(STORAGE_THEME, theme);
+  }
+
+  darkModeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const savedTheme = localStorage.getItem(STORAGE_THEME) ||
+    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  applyTheme(savedTheme);
+
+  function showView(view) {
+    loadingView.classList.remove('active');
+    uploadView.classList.remove('active');
+    checkinView.classList.remove('active');
+    view.classList.add('active');
+    if (view === checkinView) {
+      searchInput.focus();
+    }
+  }
+
+  showView(loadingView);
+
+  configRef.once('value').then((snap) => {
+    const val = snap.val();
+    if (val) {
+      config = val;
+      return attendeesRef.once('value');
+    }
+    return null;
+  }).then((snap) => {
+    if (snap) {
+      const val = snap.val();
+      if (val) {
+        attendees = Array.isArray(val) ? val : Object.values(val);
+        dataLoaded = true;
+        showCheckinView();
+        listenForChanges();
+        return;
+      }
+    }
+    showView(uploadView);
+    listenForChanges();
+  }).catch(() => {
+    showView(uploadView);
+    listenForChanges();
+  });
+
+  function listenForChanges() {
+    attendeesRef.on('value', (snap) => {
+      const val = snap.val();
+      if (val) {
+        attendees = Array.isArray(val) ? val : Object.values(val);
+        if (dataLoaded) {
+          renderStats();
+          renderList();
+        }
+      }
+    });
+
+    configRef.on('value', (snap) => {
+      const val = snap.val();
+      if (val) {
+        config = val;
+        if (!dataLoaded) {
+          dataLoaded = true;
+          showCheckinView();
+        }
+      }
+    });
+  }
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) handleFile(fileInput.files[0]);
+  });
+
+  let parsedRows = [];
+  let parsedHeaders = [];
+
+  function handleFile(file) {
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (!results.data.length || !results.meta.fields.length) {
+          showToast('Could not parse CSV. Please check the file format.', null, 4000);
+          return;
+        }
+        parsedRows = results.data;
+        parsedHeaders = results.meta.fields;
+        showMapping();
+      },
+      error: () => {
+        showToast('Error reading file.', null, 4000);
+      }
+    });
+  }
+
+  function showMapping() {
+    mappingCard.style.display = 'block';
+    displayColSelect.innerHTML = '';
+    searchColChecks.innerHTML = '';
+
+    const nameGuess = guessColumn(parsedHeaders, ['name', 'full name', 'fullname', 'attendee', 'participant']);
+
+    parsedHeaders.forEach(col => {
+      const opt = document.createElement('option');
+      opt.value = col;
+      opt.textContent = col;
+      if (col === nameGuess) opt.selected = true;
+      displayColSelect.appendChild(opt);
+    });
+
+    parsedHeaders.forEach(col => {
+      const label = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = col;
+      cb.checked = true;
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(col));
+      searchColChecks.appendChild(label);
+    });
+
+    previewNote.textContent = `${parsedRows.length} registrations found with ${parsedHeaders.length} columns.`;
+  }
+
+  function guessColumn(headers, hints) {
+    const lower = headers.map(h => h.toLowerCase().trim());
+    for (const hint of hints) {
+      const idx = lower.indexOf(hint);
+      if (idx !== -1) return headers[idx];
+    }
+    return headers[0];
+  }
+
+  startBtn.addEventListener('click', () => {
+    const displayColumn = displayColSelect.value;
+    const checkboxes = searchColChecks.querySelectorAll('input:checked');
+    const searchColumns = Array.from(checkboxes).map(cb => cb.value);
+
+    if (!searchColumns.length) {
+      showToast('Select at least one searchable column.', null, 3000);
+      return;
+    }
+
+    config = { displayColumn, searchColumns };
+    attendees = parsedRows.map((row, i) => ({
+      id: i,
+      data: row,
+      checkedIn: false,
+      checkedInAt: null
+    }));
+
+    configRef.set(config);
+    attendeesRef.set(attendees);
+    dataLoaded = true;
+    showCheckinView();
+  });
+
+  function showCheckinView() {
+    showView(checkinView);
+    renderStats();
+    renderList();
+  }
+
+  function renderStats() {
+    const total = attendees.length;
+    const checked = attendees.filter(a => a.checkedIn).length;
+    const remaining = total - checked;
+    statTotal.textContent = total;
+    statChecked.textContent = checked;
+    statRemaining.textContent = remaining;
+    progressFill.style.width = total ? (checked / total * 100) + '%' : '0%';
+
+    document.getElementById('countAll').textContent = `(${total})`;
+    document.getElementById('countPending').textContent = `(${remaining})`;
+    document.getElementById('countChecked').textContent = `(${checked})`;
+  }
+
+  function getFilteredAttendees() {
+    let list = attendees;
+
+    if (activeFilter === 'pending') list = list.filter(a => !a.checkedIn);
+    else if (activeFilter === 'checked') list = list.filter(a => a.checkedIn);
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(a => {
+        return config.searchColumns.some(col => {
+          const val = a.data[col];
+          return val && String(val).toLowerCase().includes(q);
+        });
+      });
+    }
+
+    return list;
+  }
+
+  function renderList() {
+    const filtered = getFilteredAttendees();
+    attendeeList.innerHTML = '';
+
+    if (!filtered.length) {
+      attendeeList.innerHTML = `
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          <p>${searchQuery ? 'No matching attendees found.' : 'No attendees in this view.'}</p>
+        </div>`;
+      return;
+    }
+
+    const frag = document.createDocumentFragment();
+    filtered.forEach(a => {
+      const li = document.createElement('li');
+      li.className = 'attendee-item' + (a.checkedIn ? ' checked-in' : '');
+
+      const detailCols = config.searchColumns.filter(c => c !== config.displayColumn);
+      const details = detailCols.map(c => a.data[c]).filter(Boolean).join(' \u00b7 ');
+
+      li.innerHTML = `
+        <div class="attendee-info">
+          <div class="attendee-name">${esc(a.data[config.displayColumn] || '(no name)')}</div>
+          ${details ? `<div class="attendee-details">${esc(details)}</div>` : ''}
+          ${a.checkedIn ? `<div class="attendee-time">Checked in at ${formatTime(a.checkedInAt)}</div>` : ''}
+        </div>
+        <button class="btn-checkin ${a.checkedIn ? 'done btn-secondary' : 'btn-primary'}"
+                data-id="${a.id}">
+          ${a.checkedIn ? '&#10003; Done' : 'Check In'}
+        </button>`;
+      frag.appendChild(li);
+    });
+    attendeeList.appendChild(frag);
+  }
+
+  attendeeList.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-checkin');
+    if (!btn) return;
+    const id = parseInt(btn.dataset.id, 10);
+    const attendee = attendees.find(a => a.id === id);
+    if (!attendee) return;
+
+    if (attendee.checkedIn) {
+      showAlreadyCheckedInWarning(attendee);
+      return;
+    }
+
+    checkIn(id);
+  });
+
+  function checkIn(id) {
+    const attendee = attendees.find(a => a.id === id);
+    if (!attendee) return;
+
+    attendee.checkedIn = true;
+    attendee.checkedInAt = new Date().toISOString();
+
+    attendeesRef.child(String(id)).update({
+      checkedIn: true,
+      checkedInAt: attendee.checkedInAt
+    });
+
+    renderStats();
+    renderList();
+
+    const name = attendee.data[config.displayColumn] || 'Attendee';
+    showToast(`${name} checked in!`, () => undoCheckIn(id), 5000);
+  }
+
+  function undoCheckIn(id) {
+    const attendee = attendees.find(a => a.id === id);
+    if (!attendee) return;
+
+    attendee.checkedIn = false;
+    attendee.checkedInAt = null;
+
+    attendeesRef.child(String(id)).update({
+      checkedIn: false,
+      checkedInAt: null
+    });
+
+    renderStats();
+    renderList();
+  }
+
+  function showAlreadyCheckedInWarning(attendee) {
+    const name = attendee.data[config.displayColumn] || 'Attendee';
+    const time = formatTime(attendee.checkedInAt);
+    showModal(
+      'Already Checked In',
+      `${name} was already checked in at ${time}. No action needed.`,
+      [{ label: 'OK', cls: 'btn-primary', action: closeModal }]
+    );
+  }
+
+  searchInput.addEventListener('input', () => {
+    searchQuery = searchInput.value.trim();
+    renderList();
+  });
+
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const filtered = getFilteredAttendees();
+      if (filtered.length === 1 && !filtered[0].checkedIn) {
+        checkIn(filtered[0].id);
+        searchInput.value = '';
+        searchQuery = '';
+        renderList();
+      }
+    }
+  });
+
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeFilter = tab.dataset.filter;
+      renderList();
+    });
+  });
+
+  exportBtn.addEventListener('click', () => {
+    const rows = attendees.map(a => {
+      const row = { ...a.data };
+      row['checked_in'] = a.checkedIn ? 'yes' : 'no';
+      row['checked_in_at'] = a.checkedInAt || '';
+      return row;
+    });
+    const csv = Papa.unparse(rows);
+    downloadFile(csv, 'checkin_report.csv', 'text/csv');
+    showToast('Report exported!', null, 3000);
+  });
+
+  resetBtn.addEventListener('click', () => {
+    showModal(
+      'Reset All Check-Ins',
+      'This will uncheck everyone. Registration data will be kept. Are you sure?',
+      [
+        { label: 'Cancel', cls: 'btn-secondary', action: closeModal },
+        { label: 'Reset', cls: 'btn-danger', action: () => {
+          attendees.forEach(a => { a.checkedIn = false; a.checkedInAt = null; });
+          attendeesRef.set(attendees);
+          renderStats();
+          renderList();
+          closeModal();
+          showToast('All check-ins reset.', null, 3000);
+        }}
+      ]
+    );
+  });
+
+  newCsvBtn.addEventListener('click', () => {
+    showModal(
+      'Load New CSV',
+      'This will replace all current data with a new CSV. Any check-in progress will be lost. Continue?',
+      [
+        { label: 'Cancel', cls: 'btn-secondary', action: closeModal },
+        { label: 'Continue', cls: 'btn-danger', action: () => {
+          attendeesRef.remove();
+          configRef.remove();
+          attendees = [];
+          config = null;
+          dataLoaded = false;
+          parsedRows = [];
+          parsedHeaders = [];
+          mappingCard.style.display = 'none';
+          fileInput.value = '';
+          closeModal();
+          showView(uploadView);
+        }}
+      ]
+    );
+  });
+
+  function showToast(message, undoCallback, duration) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<span>${esc(message)}</span>`;
+    if (undoCallback) {
+      const btn = document.createElement('button');
+      btn.textContent = 'Undo';
+      btn.addEventListener('click', () => {
+        undoCallback();
+        toast.remove();
+      });
+      toast.appendChild(btn);
+    }
+    toastContainer.appendChild(toast);
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, duration || 5000);
+  }
+
+  function showModal(title, text, buttons) {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal">
+        <h3>${esc(title)}</h3>
+        <p>${esc(text)}</p>
+        <div class="modal-actions" id="modalActions"></div>
+      </div>`;
+    const actions = overlay.querySelector('#modalActions');
+    buttons.forEach(b => {
+      const btn = document.createElement('button');
+      btn.className = b.cls;
+      btn.textContent = b.label;
+      btn.addEventListener('click', b.action);
+      actions.appendChild(btn);
+    });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+    modalRoot.innerHTML = '';
+    modalRoot.appendChild(overlay);
+  }
+
+  function closeModal() {
+    modalRoot.innerHTML = '';
+  }
+
+  function esc(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function formatTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  function downloadFile(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+})();
+</script>
+</body>
+</html>
