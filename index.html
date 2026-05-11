@@ -808,6 +808,10 @@ button:active { opacity: 0.85; }
   let parsedRows = [];
   let parsedHeaders = [];
 
+  function sanitizeKey(key) {
+    return key.replace(/[.#$/\[\]]/g, '').trim();
+  }
+
   function handleFile(file) {
     Papa.parse(file, {
       header: true,
@@ -817,8 +821,14 @@ button:active { opacity: 0.85; }
           showToast('Could not parse CSV. Please check the file format.', null, 4000);
           return;
         }
-        parsedRows = results.data;
-        parsedHeaders = results.meta.fields;
+        parsedHeaders = results.meta.fields.map(sanitizeKey);
+        parsedRows = results.data.map(row => {
+          const clean = {};
+          results.meta.fields.forEach((origKey, i) => {
+            clean[parsedHeaders[i]] = row[origKey];
+          });
+          return clean;
+        });
         showMapping();
       },
       error: () => {
